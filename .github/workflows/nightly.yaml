@@ -17,7 +17,7 @@ jobs:
           version: 0.15.1
       - name: Build
         run: |
-          zig build -Doptimize=ReleaseFast
+          zig build -Doptimize=ReleaseFast --verbose
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
