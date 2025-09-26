@@ -104,10 +104,15 @@ pub fn capture(self: *@This(), allocator: std.mem.Allocator) void {
         HRESULT.check("release frame", hr);
         _ = desktop_resource.IUnknown.Release();
     }
+    defer {
+        hr = self.duplication.ReleaseFrame();
+        HRESULT.check("release frame", hr);
+    }
 
     var acquired_texture: *d3d11.ID3D11Texture2D = undefined;
     hr = desktop_resource.IUnknown.QueryInterface(d3d11.IID_ID3D11Texture2D, @ptrCast(&acquired_texture));
     HRESULT.check("get acquired desktop image", hr);
+    _ = desktop_resource.IUnknown.Release();
     defer _ = acquired_texture.IUnknown.Release();
 
     var staging_texture: *d3d11.ID3D11Texture2D = undefined;

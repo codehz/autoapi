@@ -108,13 +108,16 @@ do
     ---@field save fun(self: Image, path: string, format: string)
     ---@field clone fun(self: Image): Image
 
+    ---@type ImageSearchOptions
+    local p_search_options = ffi.new("struct ImageSearchOptions[1]")
     ---@type ImageSearchResult
     local search_result = ffi.new("struct ImageSearchResult")
 
     ffi.metatype("struct Image", {
         __index = {
             search_pixel = function(self, opts)
-                if api.image_search_pixel(self, opts, search_result) then
+                p_search_options[0] = opts
+                if api.image_search_pixel(self, p_search_options, search_result) then
                     return {
                         x = search_result.x,
                         y = search_result.y,
