@@ -8,10 +8,25 @@ const MSG_REFRESH = messaging.WM_APP;
 
 var msg: messaging.MSG = undefined;
 
+var mainThreadId: u32 = undefined;
+
 const timer = @import("./utils/timer.zig");
 var manager = timer.TimerManager(1024).empty;
 
+fn CtrlCHandler(code: u32) callconv(.winapi) i32 {
+    std.debug.print("Ctrl-C\n", .{});
+    return messaging.PostThreadMessageW(
+        mainThreadId,
+        messaging.WM_QUIT,
+        @intCast(code),
+        0,
+    );
+}
+
 pub export fn loop() callconv(.c) i32 {
+    mainThreadId = win32.system.threading.GetCurrentThreadId();
+    _ = win32.system.console.SetConsoleCtrlHandler(CtrlCHandler, win32.zig.TRUE);
+    defer _ = win32.system.console.SetConsoleCtrlHandler(CtrlCHandler, win32.zig.FALSE);
     while (true) {
         const start_tick: u64 = @intCast(std.time.milliTimestamp());
         const next_target = manager.get_next_target();
