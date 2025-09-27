@@ -14,7 +14,6 @@ const timer = @import("./utils/timer.zig");
 var manager = timer.TimerManager(1024).empty;
 
 fn CtrlCHandler(code: u32) callconv(.winapi) i32 {
-    std.debug.print("Ctrl-C\n", .{});
     return messaging.PostThreadMessageW(
         mainThreadId,
         messaging.WM_QUIT,
