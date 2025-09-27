@@ -373,6 +373,26 @@ local M = {
     api = api
 }
 
+---@class CallbackPool
+local CallbackPool = {}
+
+---@param func fun()
+---@return ffi.cb*
+function CallbackPool:get(func)
+    ---@type ffi.cb*?
+    local last = table.remove(self)
+    if last ~= nil then
+        last:set(func)
+        return last
+    end
+    return ffi.cast("void(*)()", func) --[[@as ffi.cb*]]
+end
+
+---@param cb ffi.cb*
+function CallbackPool:recycle(cb)
+    table.insert(self, cb)
+end
+
 ---@generic T, R
 ---@param func fun(...:`T`): R
 ---@param ... T
@@ -427,12 +447,11 @@ function M.interval(interval, callback)
         local timer_id
         local c_callback
 
-        ---@type ffi.cb*
-        c_callback = ffi.cast("void(*)()", function()
+        c_callback = CallbackPool:get(function()
             local ret = callback()
             if ret ~= nil then
                 api.timer_remove(timer_id)
-                c_callback:free()
+                CallbackPool:recycle(c_callback)
                 cb(ret)
             end
         end)
@@ -446,9 +465,9 @@ end
 function M.sleep(time)
     return function(cb)
         local c_callback
-        ---@type ffi.cb*
-        c_callback = ffi.cast("void(*)()", function()
-            c_callback:free()
+
+        c_callback = CallbackPool:get(function()
+            CallbackPool:recycle(c_callback)
             cb()
         end)
         api.timer_new(time, false, c_callback)
