@@ -40,10 +40,12 @@ export fn input_text(text: [*:0]const u8) callconv(.c) u32 {
     );
 }
 
-export fn input_send(inputs: [*]const keyboard_and_mouse.INPUT, count: u32) callconv(.c) u32 {
+export var input_send_buffer: [32]keyboard_and_mouse.INPUT = undefined;
+
+export fn input_send(count: u32) callconv(.c) u32 {
     return keyboard_and_mouse.SendInput(
         @intCast(count),
-        @constCast(inputs),
+        @constCast(&input_send_buffer),
         @sizeOf(keyboard_and_mouse.INPUT),
     );
 }

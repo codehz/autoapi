@@ -47,8 +47,6 @@ char const *format_error(int code);
 unsigned int timer_new(unsigned long interval, bool repeat, void (*callback)());
 void timer_remove(unsigned int id);
 
-unsigned int input_text(char const *text);
-unsigned int input_send(struct Input *inputs, unsigned int count);
 
 struct Input {
     int32_t type;
@@ -73,6 +71,10 @@ struct Input {
         } hardware;
     };
 };
+
+unsigned int input_text(char const *text);
+struct Input input_send_buffer[32];
+unsigned int input_send(unsigned int count);
 ]]
 
 local function get_script_directory()
@@ -549,9 +551,10 @@ end
 ---@alias KeyboardInput { keydown: string } | { keyup: string }
 ---@alias MouseInput { move: [integer, integer] } | { moveabs: [integer, integer] } | "leftdown" | "leftup" | "rightdown" | "rightup" | "middledown" | "middleup" | "x1down" | "x1up" | "x2down" | "x2up" | { wheel: integer } | { hwheel: integer }
 ---@alias Input KeyboardInput|MouseInput
+
 ---@param inputs Input[]
-function M.input(inputs)
-    local native_inputs = ffi.new("struct Input[?]", #inputs)
+local function input_internal(inputs)
+    local native_inputs = api.input_send_buffer;
     for i, input in ipairs(inputs) do
         local native_input = native_inputs[i - 1]
 
@@ -625,7 +628,19 @@ function M.input(inputs)
             end
         end
     end
-    api.input_send(native_inputs, #inputs)
+    api.input_send(#inputs)
+end
+
+---@param inputs Input[]
+function M.input(inputs)
+    local n = #inputs
+    for i = 1, n, 32 do
+        local chunk = {}
+        for j = i, math.min(i + 31, n) do
+            chunk[#chunk + 1] = inputs[j]
+        end
+        input_internal(chunk)
+    end
 end
 
 function M.loop()
