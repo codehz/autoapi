@@ -189,7 +189,7 @@ comptime {
             x: i32,
             y: i32,
         };
-        const vector_size = 8;
+        const vector_size = std.simd.suggestVectorLength(u32) orelse 8;
 
         const VecU32 = @Vector(vector_size, u32);
         const VecBool = @Vector(vector_size, bool);
