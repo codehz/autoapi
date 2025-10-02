@@ -47,7 +47,6 @@ char const *format_error(int code);
 unsigned int timer_new(unsigned long interval, bool repeat, void (*callback)());
 void timer_remove(unsigned int id);
 
-
 struct Input {
     int32_t type;
     union {
@@ -75,6 +74,8 @@ struct Input {
 unsigned int input_text(char const *text);
 struct Input input_send_buffer[32];
 unsigned int input_send(unsigned int count);
+
+bool get_key_state(int vk);
 ]]
 
 local function get_script_directory()
@@ -641,6 +642,15 @@ function M.input(inputs)
         end
         input_internal(chunk)
     end
+end
+
+---@param key string
+function M.get_key_state(key)
+    local vk = VK[key]
+    if vk == nil then
+        error("invalid key: " .. key)
+    end
+    return api.get_key_state(vk)
 end
 
 function M.loop()

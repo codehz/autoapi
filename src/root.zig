@@ -10,6 +10,7 @@ comptime {
     _ = @import("./loop.zig");
     _ = @import("./screen.zig");
     _ = @import("./utils/Input.zig");
+    _ = @import("./utils/KeyState.zig");
 }
 
 pub fn DllMain(instance: std.os.windows.HINSTANCE, reason: std.os.windows.DWORD, reserved: std.os.windows.LPVOID) std.os.windows.BOOL {
